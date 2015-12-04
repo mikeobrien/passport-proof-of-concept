@@ -1,0 +1,34 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+</head>
+<body style="padding: 30px">
+    <div id="login" style="display: none;">
+        <a id="login" href="oauth/google">Login with Google.</a>
+    </div>
+    <div id="logout" style="display: none;">
+        Logged in as <span id="username"></span> - <a id="logout" href="#">Logout</a>
+    </div>
+</body>
+<script>
+    $(function() {
+        $.get('profile')
+            .done(function(data) {
+                $('#username').text(data.username);
+                $('#logout').show();
+            })
+            .fail(function(response) {
+                if (response.status == 401) $('#login').show();
+            });
+
+        $('#logout').click(function() {
+            $.get('logout')
+                .done(function(data) {
+                    $('#logout').hide();
+                    $('#login').show();
+                });
+        });
+    });
+</script>
+</html>
