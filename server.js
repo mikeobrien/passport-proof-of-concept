@@ -1,36 +1,33 @@
 var express = require('express');
 var passport = require('passport');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override');
+var session = require('express-session');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var app = express();
 
-
+app.use(cookieParser());
+app.use(bodyParser());
+app.use(methodOverride());
+app.use(session({ secret: 'keyboard cat' }));
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 // Dummy database
 var User = {
     users: require('./users.json'),
-    /*findById: function(id) {
-        return this.users.find(function(x) {
-            return x.id === id;
-        })[0];
-    },*/
     findById: function(id){
-        var x= this.users.find(function(x){
-            return x.id===id;});
-        if (x != null)
-        {
-            return x[0];
+        for (var i = 0; i < this.users.length; i++) {
+            if (this.users[i].id == id) return this.users[i];
         }
-
     },
     findOrCreate: function(user) {
         return this.findById(user.id) || this.create(user);
     },
     create: function(user) {
         this.users.push(user);
-        require('fs').writeFileSync('./users.json', JSON.stringify(this.users));
+        require('fs').writeFileSync('./users.json', JSON.stringify(this.users, null, 4));
         return user;
     }
 };
@@ -51,9 +48,10 @@ passport.use(new GoogleStrategy({
         callbackURL: "http://localhost:3000/oauth/google/callback"
     },
     function(accessToken, refreshToken, profile, done) {
-        require('fs').writeFileSync('./profile.json', JSON.stringify(profile));
+        require('fs').writeFileSync('./profile.json', JSON.stringify(profile, null, 4));
         done(null, User.findOrCreate({
-            id: profile.id
+            id: profile.id,
+            name: profile.displayName,
         }));
     }
 ));
@@ -77,10 +75,6 @@ app.get('/logout', function(req, res){
 // Express configuration
 
 app.use(express.static('.'));
-
-
-
-
 
 app.get('/profile', authenticationCheck, function (req, res) {
     res.json(req.user);
