@@ -3,13 +3,27 @@ var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var app = express();
 
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 // Dummy database
 var User = {
     users: require('./users.json'),
-    findById: function(id) {
+    /*findById: function(id) {
         return this.users.find(function(x) {
             return x.id === id;
         })[0];
+    },*/
+    findById: function(id){
+        var x= this.users.find(function(x){
+            return x.id===id;});
+        if (x != null)
+        {
+            return x[0];
+        }
+
     },
     findOrCreate: function(user) {
         return this.findById(user.id) || this.create(user);
@@ -64,13 +78,17 @@ app.get('/logout', function(req, res){
 
 app.use(express.static('.'));
 
+
+
+
+
 app.get('/profile', authenticationCheck, function (req, res) {
-  res.json(req.user);
+    res.json(req.user);
 });
 
 function authenticationCheck(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.send(401);
+    if (req.isAuthenticated()) { return next(); }
+    res.send(401);
 }
 
 var server = app.listen(3000, function () {
